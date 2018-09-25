@@ -17,7 +17,7 @@ if msg='' then do
 end
 else do
   -- Content of message is literal text
-  ctxt='-'~copies(msg~length)
+  ctxt=copies('-', length(msg))
   ctxt2='---------|---------|---------|---------|'
   'MESSAGEBOX' title||CR||ctxt||CR||msg
 end
@@ -32,17 +32,17 @@ parse arg msg, title
 'EXTRACT /ESCAPE/'
 CR=ESCAPE.1||'N'
 if msg='' then msg='Continue?'
-maxwidth=max(msg~length, title~length)+5
-divline='-'~copies(maxwidth)
-choices='(Y)es | (N)o'~centre(maxwidth)
+maxwidth=max(length(msg), length(title))+5
+divline=copies('-', maxwidth)
+choices=centre('(Y)es | (N)o', maxwidth)
 info=' 'msg -- ~centre(maxwidth)
 if title='' then
   'MESSAGEBOX' info||CR choices
 else
   'MESSAGEBOX' title||CR divline||CR info||CR choices
-if result='ENTER' then return .true
-else if result~translate~abbrev('Y') then return .true
-return .false
+if result='ENTER' then return 1
+else if abbrev(translate(result), 'Y') then return 1
+return 0
 
 ::routine ask public
 parse arg promptTxt
@@ -50,14 +50,6 @@ parse arg promptTxt
 if rc=0 then
   if result<>'' then return result
 return .nil
-
-::routine log public
-parse arg message
-logf=value('X2HOME',,'ENVIRONMENT')||'\x2debug.log'
-outp=.stream~new(logf)
-outp~lineout(date() time() message)
-outp~close
-return
 
 ::routine showHelp public
 parse arg params, helpMsg, noblank
@@ -94,13 +86,9 @@ return .false
 ::routine cmdOutputLine public
   parse arg command
   if arg(1,'O') then return ''
-  ADDRESS CMD command '| RXQUEUE'
-  do while queued()<>0
-    parse pull entry
-    if entry='' then iterate
-    return entry
-  end
-  return ''
+  output=cmdOutput(command)
+  if output=.NIL then return ''
+  return output[1]
 
 -- Replace a string containing embedded placeholders with specified values.
 ::routine mergevalues public
@@ -137,7 +125,7 @@ return .false
     otherwise nop
   end
   return 1
- 
+
 ::routine hasblockmark public
   'EXTRACT /MARK/'
   'EXTRACT /FLSCREEN/'
@@ -150,4 +138,63 @@ return .false
     otherwise rc=1
   end
   return rc
- 
+
+::routine log public
+  parse arg message
+  logf=value('X2HOME',,'ENVIRONMENT')||'\x2debug.log'
+  -- 'echo' date() time() message '>>' logf
+  outp=.stream~new(logf)
+  outp~lineout(date() time() message)
+  outp~close
+  return
+
+/* Present dialog of currently open files */
+::routine filering public
+  parse arg title, option
+  'EXTRACT /RING/'
+  'EXTRACT /SCREEN/'
+  maxrows=SCREEN.1
+  maxcols=SCREEN.2
+
+  displaytext.=getDisplayNames(RING., option)
+  mxIW=maxItemInStem(displaytext.)
+  winwidth=min(maxcols-2, max(maxItemInStem(displaytext.), maxcols%2))
+  call log 'MxDW='maxcols-2 'MedDW='maxcols%2 'TW='length(title)+15 'MxIW='mxIW 'winW='winwidth 'opt='option
+  'WINDOW' min(maxrows%2,RING.0) winwidth RING.0 title
+  do i=1 to RING.0
+    'WINLINE' displaytext.i '\n SETRESULT' RING.i
+  end i
+  'WINWAIT'
+  -- Return blank string if user cancels choice
+  if symbol('RESULT')='LIT' then return ''
+  return result
+
+::routine getDisplayNames private
+  use arg srclist., option
+  if abbrev('FILENAME', option) then do i=1 to srclist.0
+    newlist.i=filespec('N', srclist.i)
+  end i
+  else do
+    'EXTRACT /CD/'
+    do i=1 to srclist.0
+      newlist.i=abbrevPath(srclist.i, CD.1)
+    end i
+  end
+  newlist.0=srclist.0
+  return newlist.
+
+/* Shorten a full path if it is in the current working directory */
+::routine abbrevPath private
+  parse arg fullpath, currdir
+  if abbrev(fullpath, currdir) then partial='.'substr(fullpath,length(currdir))
+  else                              partial=fullpath
+  return translate(partial, '/', '\')
+
+::routine maxItemInStem private
+  use arg srclist.
+  maxlen=0
+  do i=1 to srclist.0
+    if length(srclist.i)>maxlen then maxlen=length(srclist.i)
+  end i
+  return maxlen
+
