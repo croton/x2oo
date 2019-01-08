@@ -96,13 +96,29 @@ return .false
   parse arg command
   if arg(1,'O') then return .nil
   myresults=.Array~new
-  ADDRESS CMD command '| RXQUEUE'
+  ADDRESS CMD command '|RXQUEUE'
   do while queued()<>0
     parse pull entry
     if entry='' then iterate
     myresults~append(entry)
   end
   return myresults
+
+/* Pass a given command to the environment and return results as stem */
+::routine cmdOutputStem public
+  parse arg command
+  myresults.0=0
+  if arg(1,'O') then return myresults.
+  ctr=0
+  ADDRESS CMD command '|RXQUEUE'
+  do while queued()<>0
+    parse pull entry
+    if entry='' then iterate
+    ctr=ctr+1
+    myresults.ctr=entry
+  end
+  myresults.0=ctr
+  return myresults.
 
 /* -----------------------------------------------------------------------------
    Pass a given command to the external environment and return first line of
@@ -285,13 +301,7 @@ return .false
   mxIW=maxItemInStem(displaytext.)
   winwidth=calcMinDialogWidth(mxIW, maxcols)
   -- call log 'MxDW='maxcols-2 'MedDW='maxcols%2 'TW='length(title)+15 'MxIW='mxIW 'winW='winwidth 'opt='option
-  'WINDOW' min(maxrows%2,RING.0) winwidth RING.0 title
-  do i=1 to RING.0
-    'WINLINE' displaytext.i '\n SETRESULT' RING.i
-  end i
-  'WINWAIT'
-  if symbol('RESULT')='LIT' then return ''
-  return result
+  return getDialogChoice(RING., maxrows, winwidth, title, displaytext.)
 
 /* Display a dialog and return selection */
 ::routine getDialogChoice private
