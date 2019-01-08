@@ -1,15 +1,11 @@
-/* Highlight word at cursor -- to be a filename or part of filename
+/* Highlight word at cursor, to be a filename or part of filename
    to be used as filespec for a file lookup.
 */
-parse arg searchPrefix
-if searchPrefix='' then searchPrefix='c:\path\to\app\'
-
-'CURSOR DATA'
-'INSMODE ON'
-'MARK WORD'
-'MSG marked='extractAlphaFromMark()
--- call searchForMark
-'MARK CLEAR'
+  'CURSOR DATA'
+  'INSMODE ON'
+  'MARK WORD'
+  call findFiles extractAlphaFromMark()||'*'
+  'MARK CLEAR'
 exit
 
 restrictMark: procedure
@@ -19,25 +15,37 @@ restrictMark: procedure
     'MSG exclude comma'
     'MARK EXTEND LEFT'
   end
-  else 'msg' myInfo
+  else 'MSG' myInfo
+  return
+
+showFileList: procedure
+  'CMDTEXT cmdout projfiles.txt ff' extractAlphaFromMark()||'*'
   return
 
 extractAlphaFromMark: procedure
   'EXTRACT /MARKTEXT/'
-  marked=MARKTEXT.1
-  lastpos=length(marked)
-  npos=0
-  do i=1 to lastpos
+  alphaOnly=''
+  do i=1 to length(MARKTEXT.1)
     chr=substr(MARKTEXT.1, i, 1)
-    if \datatype(chr,'A') then do
-      npos=i-1
-      leave i
-    end
+    if \datatype(chr,'A') then leave i
+    alphaOnly=alphaOnly||chr
   end i
-  if npos=0 then return marked
-  return left(marked, npos)
+  return alphaOnly
 
-searchForMark: procedure expose searchPrefix
-  fspec='*'||extractAlphaFromMark()||'*'
-  'MACRO cmdout projfiles.txt dir' searchPrefix||fspec '/s /b'
-  return
+findFiles: procedure
+  parse arg fspec
+  rc=SysFileTree(fspec,'files.','FSO')
+  if files.0=0 then do
+    call xsay 'No files named' fspec
+    return 1
+  end
+  if files.0=1 then
+    'EDIT' files.1
+  else do
+    choice=pickFile(files., 'Edit which file?')
+    if choice='' then call xsay 'Selection cancelled'
+    else 'EDIT' choice
+  end
+  return 0
+
+::requires 'XRoutines.x'
