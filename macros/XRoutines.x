@@ -1,4 +1,4 @@
--- X2 Routines Library, ver. 0.11
+-- X2 Routines Library, ver. 0.12
 ::routine msgBox public
   parse arg title, msg, xcmd
   'EXTRACT /ESCAPE/'
@@ -196,8 +196,8 @@ return .false
   'MSG' message
   return
 
-::routine pickfrom public
 /* Present a listbox containing items in a directory. */
+::routine pickfrom public
   use arg map, title
   if title='' then title='Make a selection'
   'EXTRACT /SCREEN/'
@@ -216,7 +216,7 @@ return .false
   if symbol('RESULT')='LIT' then return ''
   return result
 
-/* Prompt for single choice among items in compound variable. */
+/* Prompt for single choice among items in a stem. */
 ::routine pick public
   use arg srclist., title
   if title='' then title='Make a selection'
@@ -227,6 +227,19 @@ return .false
   if mxlen=0 then mxlen=maxcols%2
   winwidth=min(maxcols-2, max(mxlen, maxcols%3))
   return getDialogChoice(srclist., maxrows, winwidth, title)
+
+/* Prompt for single choice among items in an array. */
+::routine pickFromArray public
+  use arg srclist, title
+  if title='' then title='Make a selection'
+  'EXTRACT /SCREEN/'
+  maxrows=SCREEN.1
+  maxcols=SCREEN.2
+  mxlen=maxItemInArray(srclist)
+  if mxlen=0 then mxlen=maxcols%2
+  winwidth=min(maxcols-2, max(mxlen, maxcols%3))
+  -- winwidth=calcMinDialogWidth(mxlen, maxcols)
+  return getDialogAChoice(srclist, maxrows, winwidth, title)
 
 /* Prompt for single choice among items in a file listing. */
 ::routine pickFile public
@@ -240,6 +253,15 @@ return .false
   if mxlen=0 then mxlen=maxcols%2
   winwidth=calcMinDialogWidth(mxlen, maxcols)
   return getDialogChoice(srclist., maxrows, winwidth, title, displaytext.)
+
+/* Prompt for single choice among lines in a given file. */
+::routine pickFromFile public
+  parse arg filename, title
+  if \SysFileExists(filename) then return ''
+  ifile=.Stream~new(filename)
+  contents=ifile~arrayin
+  ifile~close
+  return pickFromArray(contents, title)
 
 ::routine pickmany public
   use arg srclist., title
@@ -306,12 +328,25 @@ return .false
 /* Display a dialog and return selection */
 ::routine getDialogChoice private
   use arg returnValues., maxrows, winWidth, title, displayValues.
-  'WINDOW' min(maxrows%2, returnValues.0) winWidth returnValues.0 title
-  if datatype(displayValues.0,'W') then do i=1 to returnValues.0
+  totalItems=returnValues.0
+  'WINDOW' min(maxrows%2, totalItems) winWidth totalItems title
+  if datatype(displayValues.0,'W') then do i=1 to totalItems
     'WINLINE' displayValues.i '\n SETRESULT' returnValues.i
   end i
-  else do i=1 to returnValues.0
+  else do i=1 to totalItems
     'WINLINE' returnValues.i '\n SETRESULT' returnValues.i
+  end i
+  'WINWAIT'
+  if symbol('RESULT')='LIT' then return ''
+  return result
+
+/* Display a dialog and return selection, using arrays */
+::routine getDialogAChoice private
+  use arg returnValues, maxrows, winWidth, title
+  totalItems=returnValues~items
+  'WINDOW' min(maxrows%2, totalItems) winWidth totalItems title
+  do i=1 to totalItems
+    'WINLINE' returnValues[i] '\n SETRESULT' returnValues[i]
   end i
   'WINWAIT'
   if symbol('RESULT')='LIT' then return ''
@@ -349,6 +384,14 @@ return .false
   do i=1 to srclist.0
     if length(srclist.i)>maxlen then maxlen=length(srclist.i)
   end i
+  return maxlen
+
+::routine maxItemInArray private
+  use arg srclist
+  maxlen=0
+  loop item over srclist
+    if length(item)>maxlen then maxlen=length(item)
+  end
   return maxlen
 
 ::routine maxItemInDirectory private
