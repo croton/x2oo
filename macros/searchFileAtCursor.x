@@ -1,11 +1,14 @@
 /* Highlight word at cursor, to be a filename or part of filename
-   to be used as filespec for a file lookup.
+   to be used as filespec for a file lookup. Optionally may be a
+   text string within the file.
 */
-  'CURSOR DATA'
-  'INSMODE ON'
-  'MARK WORD'
-  call findFiles extractAlphaFromMark()||'*'
-  'MARK CLEAR'
+arg fileExtension
+'CURSOR DATA'
+'INSMODE ON'
+'MARK WORD'
+if fileExtension='' then call findFiles extractAlphaFromMark()||'*'
+else                     call findFilesContaining extractAlphaFromMark(), fileExtension
+'MARK CLEAR'
 exit
 
 restrictMark: procedure
@@ -37,6 +40,31 @@ findFiles: procedure
   rc=SysFileTree(fspec,'files.','FSO')
   if files.0=0 then do
     call xsay 'No files named' fspec
+    return 1
+  end
+  if files.0=1 then
+    'EDIT' files.1
+  else do
+    choice=pickFile(files., 'Edit which file?')
+    if choice='' then call xsay 'Selection cancelled'
+    else 'EDIT' choice
+  end
+  return 0
+
+findFilesContaining: procedure
+  parse arg searchstring, extension
+  xcmd='dir *.'extension '/s /b|asarg grep -l "'searchstring'"'
+  files.0=0
+  ctr=0
+  ADDRESS CMD xcmd '|RXQUEUE'
+  do while queued()>0
+    parse pull entry
+    ctr=ctr+1
+    files.ctr=entry
+  end
+  files.0=ctr
+  if files.0=0 then do
+    call xsay 'No *.'extension 'files found containing "'searchstring'".'
     return 1
   end
   if files.0=1 then

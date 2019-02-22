@@ -1,28 +1,27 @@
 -- X2 Routines Library, ver. 0.13
 ::routine msgBox public
-  parse arg title, msg, xcmd
+  parse arg title, msg
   'EXTRACT /ESCAPE/'
-  CR=ESCAPE.1||'N'
-  -- trace 'i'
-  if msg='' then do
-    if xcmd='' then return 1
-    else do
-      -- Show content in a message box
-      msg='' -- 'datasource='xcmd
-      res=cmdOutput(xcmd)
-      do val over res
-        msg=msg val||CR
-      end
-      'MESSAGEBOX' title||CR||msg
-    end
-  end
-  else do
-    -- Content of message is literal text
-    ctxt=copies('-', length(title))
-    ctxt2='---------|---------|---------|---------|'
-    'MESSAGEBOX' title||CR ctxt||CR msg
-  end
+  NL=ESCAPE.1||'N'
+  -- ruleline=copies('-', length(title))
+  ruleline=copies('-', 35)
+  'MESSAGEBOX' title||NL ruleline||NL||msg
   return result
+
+::routine msgBoxFromStem public
+  use arg title, textlines.
+  'EXTRACT /SCREEN/'
+  'EXTRACT /ESCAPE/'
+  NL=ESCAPE.1||'N'
+  maxlines=SCREEN.1-5
+  msg=''
+  do i=1 to textlines.0-1 while i<maxlines
+    msg=msg textlines.i||NL
+  end i
+  msg=msg textlines.i
+  if i>=maxlines then msg=msg '...'
+  call msgBox title, msg
+  return
 
 /* -----------------------------------------------------------------------------
    A message box which provides a Yes/No prompt. Returns boolean value.
@@ -31,16 +30,16 @@
 ::routine msgYNBox public
   parse arg msg, title
   'EXTRACT /ESCAPE/'
-  CR=ESCAPE.1||'N'
+  NL=ESCAPE.1||'N'
   if msg='' then msg='Continue?'
   maxwidth=max(length(msg), length(title))+5
   divline=copies('-', maxwidth)
   choices=centre('(Y)es | (N)o', maxwidth)
   info=' 'msg
   if title='' then
-    'MESSAGEBOX' info||CR choices
+    'MESSAGEBOX' info||NL choices
   else
-    'MESSAGEBOX' title||CR divline||CR info||CR choices
+    'MESSAGEBOX' title||NL divline||NL info||NL choices
   if result='ENTER' then return 1
   else if abbrev(translate(result), 'Y') then return 1
   return 0
@@ -424,7 +423,7 @@ return .false
   return newlist.
 
 /* Shorten a full path if it is in the current working directory */
-::routine abbrevPath private
+::routine abbrevPath public
   parse arg fullpath, currdir
   if abbrev(fullpath, currdir) then partial='.'substr(fullpath,length(currdir))
   else                              partial=fullpath
