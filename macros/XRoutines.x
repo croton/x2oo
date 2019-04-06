@@ -275,9 +275,9 @@ return .false
   maxrows=SCREEN.1
   maxcols=SCREEN.2
   'WINDOW' min(maxrows%2,map~items) calcMinDialogWidth(maxItemInDirectory(map), maxcols) map~items title
-  do i over map
-    'WINLINE' map[i] '\n SETRESULT' i
-  end i
+  do key over map
+    'WINLINE' map[key] '\n SETRESULT' key
+  end
   'WINWAIT'
   -- Return blank string if user cancels choice
   if symbol('RESULT')='LIT' then return ''
@@ -428,6 +428,18 @@ return .false
   if abbrev(fullpath, currdir) then partial='.'substr(fullpath,length(currdir))
   else                              partial=fullpath
   return translate(partial, '/', '\')
+
+/* Get full path of a function file */
+::routine getFunctionFile public
+  parse arg filestem
+  fnfile=filestem'.xfn'
+  x2home=value('X2HOME',,'ENVIRONMENT')
+  filepaths='.\'fnfile x2home'\lists\'fnfile
+  do w=1 to words(filepaths)
+    fn=word(filepaths,w)
+    if SysFileExists(fn) then return fn
+  end w
+  return ''
 
 ::routine maxItemInStem private
   use arg srclist.

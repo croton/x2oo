@@ -4,9 +4,20 @@
   'EXTRACT /CURSOR/'
   return word(substr(CURLINE.1, CURSOR.2),1)
 
-::routine wordAtCursor2 public
+::routine getword public
   parse arg currline, colno
   return word(substr(currline, colno),1)
+
+::routine wordBeforeCursor public
+  'EXTRACT /CURLINE/'
+  'EXTRACT /CURSOR/'
+  return getWordBefore(CURLINE.1, CURSOR.2)
+
+::routine getWordBefore public
+  parse arg currline, colno
+  target=left(currline,max(colno,1))
+  if target='' then return ''
+  return subword(target, words(target))
 
 ::routine leadblanks public
   parse arg str
