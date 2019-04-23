@@ -1,7 +1,7 @@
-/* simple -- For use with expansion macro */
+/* qp -- QuickPick, match the last word typed with items in a list. */
 parse arg items
 if items='' then do
-  'MSG usage: simple item-list'
+  'MSG usage: qp item-list'
   exit
 end
 key=wordBeforeCursor()

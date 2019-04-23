@@ -291,15 +291,15 @@ return .false
 
 /* Prompt for single choice among items in a file listing. */
 ::routine pickFile public
-  use arg srclist., title
+  use arg srclist., title, fileListOption
   if title='' then title='Pick a file'
   'EXTRACT /SCREEN/'
   maxrows=SCREEN.1
   maxcols=SCREEN.2
-  displaytext.=getDisplayNames(srclist., 'P')
+  displaytext.=getDisplayNames(srclist., fileListOption)
   mxlen=maxItemInStem(displaytext.)
-  if mxlen=0 then mxlen=maxcols%2
   winwidth=calcMinDialogWidth(mxlen, maxcols)
+  -- call log 'MxDW='maxcols-2 'MedDW='maxcols%2 'TW='length(title)+15 'MxIW='mxIW 'winW='winwidth 'opt='option
   return getDialogChoice(srclist., maxrows, winwidth, title, displaytext.)
 
 /* Prompt for single choice among lines in a given file. */
@@ -324,14 +324,7 @@ return .false
 ::routine filering public
   parse arg title, option
   'EXTRACT /RING/'
-  'EXTRACT /SCREEN/'
-  maxrows=SCREEN.1
-  maxcols=SCREEN.2
-  displaytext.=getDisplayNames(RING., option)
-  mxIW=maxItemInStem(displaytext.)
-  winwidth=calcMinDialogWidth(mxIW, maxcols)
-  -- call log 'MxDW='maxcols-2 'MedDW='maxcols%2 'TW='length(title)+15 'MxIW='mxIW 'winW='winwidth 'opt='option
-  return getDialogChoice(RING., maxrows, winwidth, title, displaytext.)
+  return pickFile(RING., title, option)
 
 /* Display a dialog and return selection */
 ::routine getDialogChoice private

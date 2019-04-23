@@ -1,11 +1,12 @@
 /* togglefile - Choose a pair of files between which to toggle */
 arg doPick
-if doPick=1 then call linkPair filering('Choose a file to toggle')
+if doPick=1 then call linkPair filering('Open files')
 else             call jump2previous
 exit
 
 linkPair: procedure
   parse arg newfilename
+  if newfilename='' then return
   'EXTRACT /FILENAME/'
   push FILENAME.1
   'EDIT' newfilename
@@ -20,8 +21,10 @@ jump2previous: procedure
     parse pull prevfile
     'EXTRACT /FILENAME/'
     push FILENAME.1
-    'EDIT' prevfile
-    'MSG Jump to' filespec('N', prevfile) 'from' filespec('N', FILENAME.1)
+    if FILENAME.1<>prevfile then do
+      'EDIT' prevfile
+      'MSG Jump to' filespec('N', prevfile) 'from' filespec('N', FILENAME.1)
+    end
   end
   return
 
