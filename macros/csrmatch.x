@@ -4,7 +4,8 @@ if options='-?' then do; 'MSG csrmatch options'; exit; end
 
 'EXTRACT /CURLINE/'
 'EXTRACT /CURSOR/'
-delim=left(getword(CURLINE.1, CURSOR.2), 1)
+if options='' then delim=left(getword(CURLINE.1, CURSOR.2), 1)
+else               delim=left(options, 1)
 next=pos(delim, CURLINE.1, CURSOR.2+1)
 segmentLen=next-CURSOR.2
 select
