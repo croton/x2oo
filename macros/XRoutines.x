@@ -256,7 +256,7 @@ return .false
 
 /* Prompt for single choice among items in an array. */
 ::routine pickFromArray public
-  use arg srclist, title
+  use arg srclist, title, resultWordIndex
   if title='' then title='Make a selection'
   'EXTRACT /SCREEN/'
   maxrows=SCREEN.1
@@ -265,7 +265,7 @@ return .false
   if mxlen=0 then mxlen=maxcols%2
   winwidth=min(maxcols-2, max(mxlen, maxcols%3))
   -- winwidth=calcMinDialogWidth(mxlen, maxcols)
-  return getDialogAChoice(srclist, maxrows, winwidth, title)
+  return getDialogAChoice(srclist, maxrows, winwidth, title, resultWordIndex)
 
 /* Prompt for single choice among items in a map or directory. */
 ::routine pickfrom public
@@ -343,12 +343,22 @@ return .false
 
 /* Display a dialog and return a selection, using arrays */
 ::routine getDialogAChoice private
-  use arg returnValues, maxrows, winWidth, title
+  use arg returnValues, maxrows, winWidth, title, resultWordIndex
   totalItems=returnValues~items
   'WINDOW' min(maxrows%2, totalItems) winWidth totalItems title
-  do i=1 to totalItems
-    'WINLINE' returnValues[i] '\n SETRESULT' returnValues[i]
-  end i
+  if datatype(resultWordIndex,'W') then do
+    if resultWordIndex>0 & resultWordIndex<=words(returnValues[1]) then
+      do i=1 to totalItems
+        'WINLINE' returnValues[i] '\n SETRESULT' word(returnValues[i], resultWordIndex)
+      end i
+    else do i=1 to totalItems
+      'WINLINE' returnValues[i] '\n SETRESULT' returnValues[i]
+      end i
+  end
+  else
+    do i=1 to totalItems
+      'WINLINE' returnValues[i] '\n SETRESULT' returnValues[i]
+    end i
   'WINWAIT'
   if symbol('RESULT')='LIT' then return ''
   return result

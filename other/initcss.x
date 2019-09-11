@@ -10,7 +10,7 @@ exit
 
 /* Steps to perform BEFORE an edit session. */
 go: procedure
-parse arg options
+  parse arg options
   call loadColors 'colors'
   call loadAttribs 'cssattribs'
   return
@@ -27,11 +27,8 @@ loadColors: procedure
   colorsfile=value('X2HOME',,'ENVIRONMENT')'\lists\imgk-colors.xfn'
   if \SysFileExists(colorsfile) then return 0
   inp=.Stream~new(colorsfile)
-  colors=.Directory~new
-  do while inp~lines>0
-    parse value inp~linein with name rgb
-    colors~put(rgb, name)
-  end
+  if inp=.nil then colors=.array~of('white rgb(255,255,255) #FFFFFF', 'black rgb(0,0,0) #000000')
+  else             colors=inp~arrayin
   inp~close
   .environment[key]=colors
   return 1
