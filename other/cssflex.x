@@ -1,14 +1,24 @@
-/* cssflex - Provide a popup of options for a given attribute. */
+/* cssflex - Look up a CSS flex attribute on the current line and pop up list of possible values.
+   Lookups of attribute names support abbreviations and shortcuts. For example,
+     flex-dir ... matches "flex-direction"
+     flex-d ..... matches "flex-direction"
+     d .......... matches "flex-direction"
+*/
 parse arg name
-if name='-?' then do; 'MSG cssflex name'; exit; end
-call lookupAttrib
+if name='-?' then do; 'MSG cssflex supports shortcuts: a b c d f g i j l o s w'; exit; end
+
+name=wordBeforeCursor()
+if name='' then
+  'MSG No attribute on current line!'
+else
+  call lookupAttribValues name
 exit
 
-lookupAttrib: procedure
-  key=wordBeforeCursor()
-  if key='' then 'MSG No attribute on current line!'
-  else do
-    attribs=loadAttribs()
+lookupAttribValues: procedure
+  parse arg key
+  attribs=loadAttribs()
+  attribName=lookupByShortCut(key)
+  if attribName='' then do
     if attribs[key]=.NIL then do
       parse value searchByAbbrev(attribs, key) with att values
       if att='' then do; call xsay 'No such css attribute:' key; return; end
@@ -29,8 +39,38 @@ lookupAttrib: procedure
       else              'KEYIN :' choice';'
     end
   end
+  else do
+    choice=popup(attribName, attribs[attribName])
+    if choice='' then call xsay 'No choice made.'
+    else do
+      'CURSOR DATA'
+      'PREVIOUS_WORD'
+      'DELWORD'            -- remove abbreviation
+      'KEYIN' attribName':' choice';'
+    end
+  end
   return
 
+lookupByShortCut: procedure
+  parse arg key
+  select
+    when key='d' then return 'flex-direction'
+    when key='w' then return 'flex-wrap'
+    when key='l' then return 'flex-flow'
+    when key='j' then return 'justify-content'
+    when key='i' then return 'align-items'
+    when key='c' then return 'align-content'
+    when key='o' then return 'order'
+    when key='g' then return 'flex-grow'
+    when key='s' then return 'flex-shrink'
+    when key='b' then return 'flex-basis'
+    when key='f' then return 'flex'
+    when key='a' then return 'align-self'
+    otherwise nop
+  end
+  return ''
+
+-- Search a collection by an abbreviated key, returning first match
 searchByAbbrev: procedure
   use arg collection, key
   name=''
@@ -67,6 +107,10 @@ loadAttribs: procedure
   dir['align-items']='flex-start;center;flex-end;baseline;stretch'
   dir['align-content']='flex-start flex-end center space-between space-around stretch'
   dir['align-self']='flex-start;center;flex-end;baseline;stretch'
+  dir['order']='1'
+  dir['flex-grow']='1'
+  dir['flex-shrink']='1'
+  dir['flex-basis']='1'
   return dir
 
 ::requires 'XEdit.x'
