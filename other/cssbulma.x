@@ -7,7 +7,7 @@ if pickMany='-?' then do; 'MSG cssbulma [pickMany]'; exit; end
 'EXTRACT /CURSOR/'
 tagname=getWordBefore(CURLINE.1, CURSOR.2)
 if tagname='' then tagname='div'
-lastWordRemoved=delword(CURLINE.1, words(CURLINE.1))
+lastWordRemoved=delword(CURLINE.1, max(words(CURLINE.1), 1))
 
 fnFile=getFunctionFile('classes-bulma')
 if pickMany='' then
