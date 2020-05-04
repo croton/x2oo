@@ -264,7 +264,6 @@ return .false
   mxlen=maxItemInArray(srclist)
   if mxlen=0 then mxlen=maxcols%2
   winwidth=min(maxcols-2, max(mxlen, maxcols%3))
-  -- winwidth=calcMinDialogWidth(mxlen, maxcols)
   return getDialogAChoice(srclist, maxrows, winwidth, title, resultWordIndex)
 
 /* Prompt for single choice among items in a map or directory. */
@@ -395,7 +394,9 @@ return .false
           if picked.w then pmsg=pmsg left(returnValues[w],3)
         end w
       end
-      otherwise nop
+      otherwise
+        newidx=findFirstMatch(returnValues, winwait.1)
+        if newidx>=0 then 'WINSELECT' newidx
     end -- process key stroke
     'MSG' pmsg
   end
@@ -405,6 +406,20 @@ return .false
     if picked.w then picks~append(returnValues[w])
   end w
   return picks
+
+/* Return the index of the first match of an array item search */
+::routine findFirstMatch private
+  use arg collection, searchStr
+  iter=collection~supplier
+  match=-1
+  do while iter~available
+    if abbrev(iter~item, searchStr) then do
+      match=iter~index
+      leave
+    end
+    iter~next
+  end
+  return match
 
 ::routine calcMinDialogWidth private
   arg mxItemInList, maxcols

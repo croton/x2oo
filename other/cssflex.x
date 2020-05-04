@@ -103,14 +103,15 @@ loadAttribs: procedure
   dir=.Directory~new
   dir['flex-direction']='row;column;row-reverse;column-reverse'
   dir['flex-wrap']='wrap;nowrap;wrap-reverse'
-  dir['justify-content']='flex-start;flex-end;center;space-between;space-around;space-evenly'
+  dir['justify-content']='flex-start;flex-end;center;stretch;space-between;space-around;space-evenly'
   dir['align-items']='flex-start;center;flex-end;baseline;stretch'
-  dir['align-content']='flex-start flex-end center space-between space-around stretch'
+  dir['align-content']='flex-start;flex-end;center;space-between;space-around;stretch'
   dir['align-self']='flex-start;center;flex-end;baseline;stretch'
   dir['order']='1'
+  dir['flex']='1 1 0'
   dir['flex-grow']='1'
   dir['flex-shrink']='1'
-  dir['flex-basis']='1'
+  dir['flex-basis']='0;50%;100px'
   return dir
 
 ::requires 'XEdit.x'
