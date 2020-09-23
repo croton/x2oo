@@ -1,31 +1,46 @@
 /* togglefile - Choose a pair of files between which to toggle */
 arg doPick
-if doPick=1 then call linkPair filering('Open files')
-else             call jump2previous
+'EXTRACT /CURSOR/'
+'EXTRACT /CODE_TYPE/'
+call newq CODE_TYPE.1'_'FILEQ
+if doPick=1 then call jump2new filering('Open files'), CURSOR.1, CURSOR.2
+else             call jump2previous CURSOR.1, CURSOR.2
 exit
 
-linkPair: procedure
-  parse arg newfilename
+jump2new: procedure
+  parse arg newfilename, row, col
   if newfilename='' then return
-  'EXTRACT /FILENAME/'
-  push FILENAME.1
+  curr=pushCurrentFile(row, col)
   'EDIT' newfilename
   'REFRESH'
-  'MSG Jump to' filespec('N', newfilename) 'from' filespec('N', FILENAME.1)
   return
 
 jump2previous: procedure
+  arg row, col
   if queued()=0 then
     'MSG No previous file specified.'
   else do
-    parse pull prevfile
-    'EXTRACT /FILENAME/'
-    push FILENAME.1
-    if FILENAME.1<>prevfile then do
+    parse pull prevfile prevrow prevcol
+    curr=pushCurrentFile(row, col)
+    if curr<>prevfile then do
       'EDIT' prevfile
-      'MSG Jump to' filespec('N', prevfile) 'from' filespec('N', FILENAME.1)
+      'CURSOR' prevrow prevcol
     end
   end
+  return
+
+pushCurrentFile: procedure
+  arg row, col
+  'EXTRACT /FILENAME/'
+  push FILENAME.1 row col
+  'MSG Jump from' filespec('N', FILENAME.1) '('row',' col')'
+  return FILENAME.1
+
+newq: procedure
+  arg qname
+  newq = RXQUEUE('Create', qname)
+  if newq<>qname then rxqueue('Delete', newq)
+  rxqueue('Set',qname)
   return
 
 ::requires 'XRoutines.x'
