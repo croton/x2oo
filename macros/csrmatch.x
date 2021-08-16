@@ -1,6 +1,6 @@
 /* csrmatch - Mark text from cursor to the next instance of current character.*/
 parse arg options
-if options='-?' then do; 'MSG csrmatch options'; exit; end
+if options='?' then do; 'MSG csrmatch [delim]'; exit; end
 
 'EXTRACT /CURLINE/'
 'EXTRACT /CURSOR/'

@@ -1,6 +1,6 @@
 /* cssattr - Look up a CSS attribute on the current line and pop up list of possible values.*/
 arg option
-if option='-?' then do; 'MSG cssattr - lookup values for attribute on current line'; exit; end
+if option='?' then do; 'MSG cssattr - lookup values for attribute on current line'; exit; end
 
 'EXTRACT /CURLINE/'
 name=getAttrib(CURLINE.1)
@@ -42,4 +42,5 @@ popup: procedure
   choices.0=i
   return pick(choices., name)
 
-::requires 'XRoutines.x'
+::requires 'XPopups.x'
+-- ::requires 'XRoutines.x'

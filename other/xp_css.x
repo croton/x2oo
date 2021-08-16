@@ -1,5 +1,9 @@
 /* xp_css - Expand macro for CSS profile. */
 parse arg indent argval
+if indent='?' then do
+  call xsay 'xp_css - css expand macro for these terms: span auto gap'
+  exit
+end
 call parseStartPattern argval
 exit
 
@@ -72,4 +76,4 @@ cursorPostInsert: procedure
   end
   return
 
-::requires 'XRoutines.x'
+::requires 'XPopups.x'

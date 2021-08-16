@@ -1,6 +1,6 @@
 /* csscolor - Choose colors */
 arg option
-if option='-?' then do; 'MSG csscolor [RGB|HEX]'; exit; end
+if option='?' then do; 'MSG csscolor [RGB|HEX]'; exit; end
 
 select
   when abbrev('RGB', option, 1) then call pickColor 2
@@ -21,4 +21,5 @@ pickColor: procedure
   end
   return
 
-::requires 'XRoutines.x'
+::requires 'XPopups.x'
+-- ::requires 'XRoutines.x'

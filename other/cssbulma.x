@@ -1,6 +1,6 @@
 /* cssbulma - provide a list of Bulma CSS classes in a popup */
 parse arg pickMany
-if pickMany='-?' then do; 'MSG cssbulma [pickMany]'; exit; end
+if pickMany='?' then do; 'MSG cssbulma [pickMany]'; exit; end
 
 -- tagname shall be last word on current line
 'EXTRACT /CURLINE/'
@@ -33,5 +33,6 @@ stringify: procedure
   end
   return strip(item)
 
+::requires 'XPopups.x'
 ::requires 'XEdit.x'
-::requires 'XRoutines.x'
+-- ::requires 'XRoutines.x'

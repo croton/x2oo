@@ -1,7 +1,7 @@
 /* favdir - Show contents of a directory among a stored list */
 arg options
 select
-  when options='-?' then do; 'MSG favdir (N)ame-only' directory(); exit; end
+  when options='?' then do; 'MSG favdir (N)ame-only' directory(); exit; end
   otherwise
     ans=pickFromFile(getFavorites(), 'Quick Directories')
     if ans='' then 'MSG Selection cancelled'
@@ -18,4 +18,4 @@ getFavorites: procedure
   if SysFileExists(localFile) then return localFile
   return defaultFile
 
-::requires 'XRoutines.x'
+::requires 'XPopups.x'

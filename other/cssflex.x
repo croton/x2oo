@@ -5,7 +5,7 @@
      d .......... matches "flex-direction"
 */
 parse arg name
-if name='-?' then do; 'MSG cssflex supports shortcuts: a b c d f g i j l o s w'; exit; end
+if name='?' then do; 'MSG cssflex supports shortcuts: a b c d f g i j l o s w'; exit; end
 
 name=wordBeforeCursor()
 if name='' then
@@ -108,11 +108,12 @@ loadAttribs: procedure
   dir['align-content']='flex-start;flex-end;center;space-between;space-around;stretch'
   dir['align-self']='flex-start;center;flex-end;baseline;stretch'
   dir['order']='1'
-  dir['flex']='1 1 0'
+  dir['flex']='1 1 2em'
+  dir['flex-flow']='row wrap'
   dir['flex-grow']='1'
   dir['flex-shrink']='1'
   dir['flex-basis']='0;50%;100px'
   return dir
 
+::requires 'XPopups.x'
 ::requires 'XEdit.x'
-::requires 'XRoutines.x'

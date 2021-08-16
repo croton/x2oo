@@ -1,13 +1,14 @@
 /* fnpickdetail - Present a dialog from which to select functions,
    parsing the items into display value and return value.
 */
-parse arg filestem
-if filestem='-?' then do; 'MSG fnpickdetail filestem'; exit; end
+parse arg filestem propname .
+if filestem='?' then do; 'MSG fnpickdetail filestem'; exit; end
+if propname='' then propname='transform'
 
 choice=pickFunction(filestem)
 if choice='' then call xsay 'Choice cancelled'
 else do
-  'KEYIN' choice'()'
+  'KEYIN' propname':' choice'()'
   'LOCATE /(/-'
   'CURSOR +0 +1'  -- Place cursor right after open parens
 end
@@ -28,4 +29,4 @@ pickFunction: procedure
   ifile~close
   return pickfrom(map, filestem)
 
-::requires 'XRoutines.x'
+::requires 'XPopups.x'
